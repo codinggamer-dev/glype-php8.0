@@ -809,7 +809,7 @@ function clean($value) {
 
 	# Recurse if array
 	if ( is_array($value) ) {
-		return array_map($value);
+		return array_map('clean', $value);
 	}
 
 	# Trim extra spaces
