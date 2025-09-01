@@ -288,6 +288,11 @@ class Location {
 
 class Input {
 
+	# Declare properties for PHP 8.0 compatibility
+	public $GET;
+	public $POST;
+	public $COOKIE;
+
 	# Set up inputs
 	public function __construct() {
 
@@ -342,22 +347,11 @@ class Input {
 	# Clean a value
 	static public function clean($val) {
 
-		static $magicQuotes;
-
-		# What is our magic quotes setting?
-		if ( ! isset($magicQuotes) ) {
-			$magicQuotes = get_magic_quotes_gpc();
-		}
-
 		# What type is this?
 		switch ( true ) {
 			case is_string($val):
 
-				# Strip slashes and trim
-				if ( $magicQuotes ) {
-					$val = stripslashes($val);
-				}
-
+				# Just trim as magic quotes is no longer available in PHP 8.0
 				$val = trim($val);
 
 				break;
@@ -1333,9 +1327,9 @@ OUT;
 		# Find PHP version - may be bundled OS so strip that out
 		$phpVersion			= ( $tmp = strpos(PHP_VERSION, '-') ) ? substr(PHP_VERSION, 0, $tmp) : PHP_VERSION;
 
-		# Check above 5 and if not, add error text
-		if ( ! ( $ok = version_compare($phpVersion, '5', '>=') ) ) {
-			$error->add('Glype requires at least PHP 5 or greater.');
+		# Check above 8.0 and if not, add error text
+		if ( ! ( $ok = version_compare($phpVersion, '8.0', '>=') ) ) {
+			$error->add('Glype requires at least PHP 8.0 or greater.');
 		}
 
 		# Add to requirements
