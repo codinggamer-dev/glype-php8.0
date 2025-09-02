@@ -23,7 +23,7 @@
 ******************************************************************/
 
 // Website name
-$themeReplace['site_name'] = $_SERVER['HTTP_HOST'].' Glype&reg; proxy';
+$themeReplace['site_name'] = (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost').' Glype&reg; proxy';
 
 // Meta description
 $themeReplace['meta_description'] = <<<OUT

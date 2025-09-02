@@ -1286,7 +1286,7 @@ OUT;
 						<td align="left"><input class="inputgri" name="adminPassword" type="password"></td>
 					</tr>
 				</table>
-				<p><input class="button" value="Submit &raquo;" name="loginsubmit" type="submit"></p>
+				<p><input class="button" value="Submit &raquo;" name="loginSubmit" type="submit"></p>
 			</form>
 OUT;
 

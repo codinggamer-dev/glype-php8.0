@@ -37,9 +37,9 @@ define('GLYPE_URL',
 	'http'
 	. ( HTTPS ? 's' : '' )
 	. '://'
-	. $_SERVER['HTTP_HOST']
-	. preg_replace('#/(?:(?:includes/)?[^/]*|' . preg_quote(SCRIPT_NAME) . '.*)$#', '', $_SERVER['PHP_SELF'])
-); 
+	. (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost')
+	. preg_replace('#/(?:(?:includes/)?[^/]*|' . preg_quote(SCRIPT_NAME) . '.*)$#', '', (isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : ''))
+);
 define('GLYPE_BROWSE', GLYPE_URL . '/' . SCRIPT_NAME);
 
 # Set timezone (uncomment and set to desired timezone)
@@ -121,7 +121,7 @@ if ( glype_session_id() == '' ) {
 ******************************************************************/
 
 # Only check once per session or if the IP address changes
-if ( empty($_SESSION['ip_verified']) || $_SESSION['ip_verified'] != $_SERVER['REMOTE_ADDR'] ) {
+if ( empty($_SESSION['ip_verified']) || $_SESSION['ip_verified'] != (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '') ) {
 	if (!$CONFIG['enable_blockscript']) {
 		# Current IP matches a banned IP? true/false
 		$banned = false;
@@ -133,7 +133,7 @@ if ( empty($_SESSION['ip_verified']) || $_SESSION['ip_verified'] != $_SERVER['RE
 			if ( ($pos = strspn($ip, '0123456789.')) == strlen($ip) ) {
 
 				# Just a single IP so check for a match
-				if ( $_SERVER['REMOTE_ADDR'] == $ip ) {
+				if ( (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '') == $ip ) {
 
 					# Flag the match and break out the loop
 					$banned = true;
@@ -146,7 +146,7 @@ if ( empty($_SESSION['ip_verified']) || $_SESSION['ip_verified'] != $_SERVER['RE
 
 			# Must be some form of IP range if still here. Convert our own
 			# IP address to int and binary.
-			$ownLong = ip2long($_SERVER['REMOTE_ADDR']);
+			$ownLong = ip2long(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1');
 			$ownBin = decbin($ownLong);
 
 			# What kind of range?
@@ -207,7 +207,7 @@ if ( empty($_SESSION['ip_verified']) || $_SESSION['ip_verified'] != $_SERVER['RE
 	}
 
 	# Still here? Must be OK so save IP in session to prevent rechecking next time
-	$_SESSION['ip_verified'] = $_SERVER['REMOTE_ADDR'];
+	$_SESSION['ip_verified'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 }
 
 
@@ -456,12 +456,20 @@ function deproxyURL($url, $verifyUnique=false) {
 	}
 
 	# No :// here means url is encoded or encrypted.
-	if (!strpos($url, '://')) {
+	if (strpos($url, '://') === false) {
 		$url = rawurldecode($url);
 	}
 
+	# Still no ://, try base64 decode
+	if (strpos($url, '://') === false) {
+		$decoded = base64_decode($url);
+		if ($decoded !== false && strpos($decoded, '://') !== false) {
+			$url = $decoded;
+		}
+	}
+
 	# No :// here means url is encrypted.
-	if (!strpos($url, '://')) {
+	if (strpos($url, '://') === false) {
 
 		# Decrypt
 		if ( isset($GLOBALS['unique_salt']) ) {
@@ -979,7 +987,7 @@ function glype_session_id() {
 	if ($session_id=='') {
 		return '';
 	} elseif (!preg_match('/^[a-zA-Z0-9-]+$/', $session_id)) { # valid characters are a-z, A-Z, 0-9 and '-'
-		return md5($_SERVER['HTTP_HOST'].$_SERVER['REMOTE_ADDR']);
+		return md5((isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost') . (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : ''));
 	} else {
 		return $session_id;
 	}
